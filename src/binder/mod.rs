@@ -221,6 +221,7 @@ impl Binder {
     /// Bind a statement.
     pub fn bind(&mut self, stmt: Statement) -> Result<RecExpr> {
         let id = self.bind_stmt(stmt)?;
+        self.egraph.rebuild();
         let extractor = egg::Extractor::new(&self.egraph, egg::AstSize);
         let (_, best) = extractor.find_best(id);
         Ok(best)
@@ -363,7 +364,7 @@ impl Binder {
     }
 
     fn node(&self, id: Id) -> &Node {
-        &self.egraph[id].nodes[0]
+        &self.egraph[id].nodes[0].node
     }
 
     #[allow(dead_code)]

@@ -274,7 +274,7 @@ trait ExprExt {
 impl<D> ExprExt for egg::EClass<Expr, D> {
     fn as_list(&self) -> &[Id] {
         self.iter()
-            .find_map(|e| match e {
+            .find_map(|e| match &e.node {
                 Expr::List(list) => Some(list),
                 _ => None,
             })
@@ -283,7 +283,7 @@ impl<D> ExprExt for egg::EClass<Expr, D> {
 
     fn as_column(&self) -> ColumnRefId {
         self.iter()
-            .find_map(|e| match e {
+            .find_map(|e| match &e.node {
                 Expr::Column(cid) => Some(*cid),
                 _ => None,
             })

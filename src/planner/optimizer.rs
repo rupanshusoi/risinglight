@@ -1,11 +1,16 @@
 // Copyright 2024 RisingLight Project Authors. Licensed under Apache-2.0.
 
-use std::sync::LazyLock;
+use std::sync::{LazyLock, Mutex};
 
 use egg::CostFunction;
+use lazy_static::lazy_static;
 
 use super::*;
 use crate::catalog::RootCatalogRef;
+
+lazy_static! {
+    static ref INC_EGRAPH: Mutex<Option<EGraph>> = Mutex::new(Some(EGraph::default()));
+}
 
 /// Plan optimizer.
 #[derive(Clone)]
@@ -63,16 +68,25 @@ impl Optimizer {
         iter_limit: usize,
     ) {
         for _ in 0..iteration {
-            let runner = egg::Runner::<_, _, ()>::new(self.analysis.clone())
+            let mut guard = INC_EGRAPH.try_lock().unwrap();
+            let mut inc_egraph = guard.take().unwrap();
+            inc_egraph.inc_version();
+
+            let mut runner = egg::Runner::<_, _, ()>::new(self.analysis.clone())
+                .with_egraph(inc_egraph)
                 .with_expr(expr)
                 .with_iter_limit(iter_limit)
                 .run(rules.clone());
+            eprintln!("Here");
+            println!("{}", runner.report());
+            runner.egraph.rebuild();
             let cost_fn = cost::CostFn {
                 egraph: &runner.egraph,
             };
             let extractor = egg::Extractor::new(&runner.egraph, cost_fn);
             let cost0;
             (cost0, *expr) = extractor.find_best(runner.roots[0]);
+            *guard = Some(runner.egraph);
             if cost0 >= *cost {
                 break;
             }

@@ -46,7 +46,7 @@ impl egg::CostFunction<Expr> for CostFn<'_> {
                 costs(cond) * rows(l) * rows(r) + build() + costs(l) + costs(r)
             }
             HashJoin([t, cond, lkey, rkey, l, r]) => {
-                let hash = match self.egraph[*t].nodes[0] {
+                let hash = match self.egraph[*t].nodes[0].node {
                     Semi | Anti => hash(rows(r)) * (rows(l) + rows(r)),
                     _ => hash(rows(l)) * (rows(l) + rows(r)),
                 };

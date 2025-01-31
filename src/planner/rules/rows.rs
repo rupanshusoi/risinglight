@@ -25,7 +25,7 @@ pub fn analyze_rows(egraph: &EGraph, enode: &Expr) -> Rows {
         // for plan nodes, the result represents estimated rows
         Values(v) => v.len() as f32,
         Scan([tid, _, _]) => {
-            let table_id = egraph[*tid].nodes[0].as_table();
+            let table_id = egraph[*tid].nodes[0].node.as_table();
             egraph
                 .analysis
                 .stat
@@ -40,19 +40,19 @@ pub fn analyze_rows(egraph: &EGraph, enode: &Expr) -> Rows {
         }
         Filter([cond, c]) => x(c) * x(cond),
         Limit([limit, _, c]) | TopN([limit, _, _, c]) => x(c).min(get_limit_num(limit)),
-        Join([t, on, l, r]) => match egraph[*t].nodes[0] {
+        Join([t, on, l, r]) => match egraph[*t].nodes[0].node {
             Semi | Anti => x(l) * x(on),
             _ => x(l) * x(r) * x(on),
         },
         HashJoin([t, on, lkey, rkey, l, r]) | MergeJoin([t, on, lkey, rkey, l, r]) => {
-            if let Semi | Anti = egraph[*t].nodes[0] {
+            if let Semi | Anti = egraph[*t].nodes[0].node {
                 return x(l) * x(on) * 0.5f32.powi(list_len(lkey) as i32);
             }
             let contains_primary_key = |list: &Id| {
                 let catalog = &egraph.analysis.catalog;
                 egraph[*list].as_list().iter().any(|cid| {
                     for node in &egraph[*cid].nodes {
-                        if let Column(cid) = node {
+                        if let Column(cid) = &node.node {
                             return match catalog.get_column(cid) {
                                 Some(col) => col.is_primary(),
                                 None => false,
@@ -70,7 +70,7 @@ pub fn analyze_rows(egraph: &EGraph, enode: &Expr) -> Rows {
                 x(l) * x(r) * x(on) * 0.5f32.powi(list_len(lkey) as i32)
             }
         }
-        Apply([t, l, r]) => match egraph[*t].nodes[0] {
+        Apply([t, l, r]) => match egraph[*t].nodes[0].node {
             Semi | Anti => x(l),
             _ => x(l) * x(r),
         },

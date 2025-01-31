@@ -297,7 +297,7 @@ fn apply_column0(pattern_str: &str) -> impl Applier<Expr, ExprAnalysis> {
             if !egraph[id]
                 .nodes
                 .iter()
-                .any(|e| matches!(e, Expr::Column(_) | Expr::Ref(_)))
+                .any(|e| matches!(e.node, Expr::Column(_) | Expr::Ref(_)))
             {
                 id = egraph.add(Expr::Ref(id));
             }
@@ -436,8 +436,9 @@ fn produced(egraph: &EGraph, plan: Id) -> impl Iterator<Item = Expr> + '_ {
     (egraph[plan].data.schema.iter()).map(|id| {
         egraph[*id]
             .iter()
-            .find(|e| matches!(e, Expr::Column(_) | Expr::Ref(_)))
+            .map(|e| &e.node)
             .cloned()
+            .find(|e| matches!(e, Expr::Column(_) | Expr::Ref(_)))
             .unwrap_or(Expr::Ref(*id))
     })
 }
@@ -449,7 +450,7 @@ fn is_not_list(var1: &str) -> impl Fn(&mut EGraph, Id, &Subst) -> bool {
         !egraph[subst[var1]]
             .nodes
             .iter()
-            .any(|e| matches!(e, Expr::List(_)))
+            .any(|e| matches!(e.node, Expr::List(_)))
     }
 }
 

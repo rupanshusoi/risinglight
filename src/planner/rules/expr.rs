@@ -155,7 +155,7 @@ pub fn eval_constant(egraph: &EGraph, enode: &Expr) -> ConstValue {
         Some(DataValue::Bool(x(a)?.is_null()))
     } else if let &Cast([ty, a]) = enode {
         let a = x(a)?;
-        let ty = egraph[ty].nodes[0].as_type();
+        let ty = egraph[ty].nodes[0].node.as_type();
         // don't eval cast if data type can not be kept
         if a.is_null() && !ty.is_null() || ty.is_parametric_decimal() {
             return None;
@@ -175,7 +175,7 @@ pub fn union_constant(egraph: &mut EGraph, id: Id) {
         let added = egraph.add(Expr::Constant(val.clone()));
         egraph.union(id, added);
         // prune other nodes
-        egraph[id].nodes.retain(|n| n.is_leaf());
+        egraph[id].nodes.retain(|n| n.node.is_leaf());
     }
 }
 

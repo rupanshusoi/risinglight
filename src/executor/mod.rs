@@ -151,7 +151,7 @@ impl<S: Storage> Builder<S> {
     /// Get the node from id.
     fn node(&self, id: Id) -> &Expr {
         // each e-class has exactly one node since there is no rewrite or union.
-        &self.egraph[id].nodes[0]
+        &self.egraph[id].nodes[0].node
     }
 
     /// Extract a `RecExpr` from id.

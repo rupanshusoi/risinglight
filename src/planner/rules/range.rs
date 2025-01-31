@@ -24,7 +24,7 @@ pub type RangeCondition = Option<(ColumnRefId, KeyRange)>;
 pub fn analyze_range(egraph: &EGraph, enode: &Expr) -> RangeCondition {
     use Expr::*;
     let column = |i: &Id| {
-        egraph[*i].nodes.iter().find_map(|e| match e {
+        egraph[*i].nodes.iter().find_map(|e| match &e.node {
             Expr::Column(c) => Some(*c),
             _ => None,
         })

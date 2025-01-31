@@ -329,6 +329,7 @@ async fn main() -> Result<()> {
     } else {
         let mut options = SecondaryStorageOptions::default_for_cli();
         options.path = PathBuf::new().join(args.filename);
+        println!("{:?}", options.path);
         Database::new_on_disk(options).await
     };
 
